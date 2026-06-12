@@ -65,10 +65,10 @@ examples:
     )
 
     # ── Auth ──
-    auth_group = parser.add_argument_group("autenticazione (opzionale)")
+    auth_group = parser.add_argument_group("authentication (optional)")
     auth_group.add_argument(
         "--credentials", metavar="USER:PASS",
-        help="Username e password (es. admin:secret)"
+        help="Username and password separated by ':' (e.g. admin:secret)"
     )
     auth_group.add_argument(
         "--api-key", metavar="KEY",
@@ -76,7 +76,7 @@ examples:
     )
     auth_group.add_argument(
         "--no-auth", action="store_true",
-        help="Salta il prompt di autenticazione (utile per API pubbliche o CI/CD)"
+        help="Skip the authentication prompt (useful for public APIs or CI/CD)"
     )
 
     if len(sys.argv) == 1:
@@ -88,7 +88,7 @@ examples:
     # ── Safe mode: ask interactively if not passed via flag ──
     safe_mode = args.safe_mode
     if not safe_mode and not args.ci:
-        ans = input("Abilitare safe mode? Blocca POST/PUT/PATCH/DELETE (y/n): ").strip().lower()
+        ans = input("Enable safe mode? Blocks POST/PUT/PATCH/DELETE (y/n): ").strip().lower()
         safe_mode = (ans == "y")
         print()
 
@@ -97,16 +97,16 @@ examples:
     api_key = getattr(args, "api_key", None)
 
     if not credentials and not api_key and not args.no_auth and not args.ci:
-        answer = input("Hai credenziali di autenticazione? (y/n): ").strip().lower()
+        answer = input("Do you have authentication credentials? (y/n): ").strip().lower()
         if answer == "y":
-            print("Tipo di autenticazione:")
-            print("  [1] Username e password")
+            print("Authentication type:")
+            print("  [1] Username and password")
             print("  [2] API key / Bearer token")
-            choice = input("Scelta → ").strip()
+            choice = input("Choice → ").strip()
             if choice == "1":
-                credentials = input("Inserisci username:password → ").strip()
+                credentials = input("Enter username:password → ").strip()
             elif choice == "2":
-                api_key = input("Inserisci API key → ").strip()
+                api_key = input("Enter API key → ").strip()
         print()
 
     # ── Run ──

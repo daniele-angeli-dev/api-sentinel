@@ -1,7 +1,7 @@
 """
 agent.py — The agent loop for API Sentinel.
 
-Usa litellm: basta cambiare LLM_MODEL nel .env per usare GPT-4, Gemini, ecc.
+Uses litellm: swap models by changing LLM_MODEL in .env — no code changes needed.
 """
 
 import os
@@ -172,8 +172,8 @@ def run_agent(
                 num_retries=3,
             )
         except APIError as e:
-            print(f"\n❌ Errore API ({MODEL}): {e}")
-            print("   Probabile rate limit o credito esaurito. Attendi un minuto e riprova.")
+            print(f"\n❌ API error ({MODEL}): {e}")
+            print("   Likely a rate limit or insufficient credits. Wait a minute and try again.")
             return run_result
 
         msg = response.choices[0].message
@@ -198,7 +198,7 @@ def run_agent(
                             "url": args.get("url", ""),
                             "reason": f"{method} blocked in safe mode (read-only)"
                         })
-                        print(f"   ↳ 🔒 Bloccato ({method}) — safe mode attivo")
+                        print(f"   ↳ 🔒 Blocked ({method}) — safe mode active")
                         messages.append({
                             "role": "tool",
                             "tool_call_id": tool_call.id,
