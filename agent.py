@@ -178,13 +178,27 @@ def run_agent(
 
         msg = response.choices[0].message
         finish_reason = response.choices[0].finish_reason
-        messages.append(msg)
+        messages.append(msg.model_dump())
+
+        # ── Max tokens hit mid-run ──
+        if finish_reason == "length":
+            print(f"\n⚠️  Max tokens reached at turn {turn + 1}. Stopping early — report may be incomplete.")
+            break
 
         # ── Agent called tools ──
         if finish_reason == "tool_calls" and msg.tool_calls:
             for tool_call in msg.tool_calls:
                 name = tool_call.function.name
-                args = json.loads(tool_call.function.arguments or "{}")
+                try:
+                    args = json.loads(tool_call.function.arguments or "{}")
+                except json.JSONDecodeError as e:
+                    print(f"   ⚠️  Malformed tool arguments for '{name}': {e}")
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": json.dumps({"error": f"Invalid JSON arguments: {e}"}),
+                    })
+                    continue
 
                 _print_tool_call(name, args)
 
