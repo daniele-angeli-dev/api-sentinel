@@ -22,13 +22,13 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 examples:
-  # Test API pubblica
+  # Test a public API
   python api_sentinel.py --spec https://petstore.swagger.io/v2/swagger.json
 
   # Test with auth and safe mode
   python api_sentinel.py --spec ./swagger.json --credentials admin:pass --safe-mode
 
-  # Confronto staging vs prod
+  # Compare staging vs prod
   python api_sentinel.py --spec ./swagger.json \\
       --base-url https://staging.myapp.com \\
       --compare-url https://api.myapp.com
@@ -41,27 +41,27 @@ examples:
     # ── Core ──
     parser.add_argument(
         "--spec", required=True, metavar="URL_OR_PATH",
-        help="OpenAPI spec URL o path locale (JSON)"
+        help="OpenAPI spec URL or local file path (JSON)"
     )
     parser.add_argument(
         "--base-url", metavar="URL",
-        help="Override base URL dalla spec (es. ambiente staging)"
+        help="Override the base URL from the spec (e.g. staging environment)"
     )
     parser.add_argument(
         "--compare-url", metavar="URL",
-        help="Secondo base URL per confronto staging vs prod"
+        help="Second base URL for staging vs prod comparison"
     )
     parser.add_argument(
         "--verbose", action="store_true",
-        help="Mostra le risposte complete dei tool durante il run"
+        help="Show full tool responses during the run"
     )
     parser.add_argument(
         "--safe-mode", action="store_true",
-        help="Solo lettura: blocca POST, PUT, PATCH, DELETE prima che partano"
+        help="Read-only: blocks POST, PUT, PATCH, DELETE before they execute"
     )
     parser.add_argument(
         "--ci", action="store_true",
-        help="CI/CD mode: exit 1 se ci sono critical issues, exit 0 altrimenti"
+        help="CI/CD mode: exit 1 if critical issues are found, exit 0 otherwise"
     )
 
     # ── Auth ──
@@ -72,7 +72,7 @@ examples:
     )
     auth_group.add_argument(
         "--api-key", metavar="KEY",
-        help="API key da usare come Bearer token"
+        help="API key to use as Bearer token"
     )
     auth_group.add_argument(
         "--no-auth", action="store_true",

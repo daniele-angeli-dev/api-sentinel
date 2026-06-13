@@ -108,10 +108,7 @@ def run_agent(
     api_key: str = None,
     safe_mode: bool = False,
 ) -> dict:
-    """
-    Runs the API Sentinel agent. Returns a dict with run results (used for CI/CD exit code).
-    Restituisce un dict con i risultati del run (usato da CI/CD mode).
-    """
+    """Runs the API Sentinel agent. Returns a dict with run results (used for CI/CD exit code)."""
 
     # ── Build the initial prompt ──
     prompt = f"Analyze and test this API.\nSpec: {spec_source}"
