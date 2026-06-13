@@ -1,20 +1,41 @@
 # API Sentinel 🛡️
 
-**AI-powered API testing and debugging agent.**
-
-API Sentinel takes an OpenAPI/Swagger specification and autonomously tests every endpoint — making real HTTP calls, diagnosing failures, and generating a professional debug report. No more clicking through Swagger UI one endpoint at a time.
+> Ever opened a Swagger spec with 80 endpoints — all named, none documented?
+>
+> `POST /v2/process`. `GET /api/data`. `PUT /entity/update`. No descriptions. No examples. Just a wall of routes that may or may not work in your environment.
+>
+> The only way to know what they actually do is to call them one by one, stare at the response, and guess. If you're lucky, someone left a comment. Usually they didn't.
+>
+> I built API Sentinel for exactly that moment. Point it at any OpenAPI spec and it autonomously tests every endpoint — making real HTTP calls, capturing responses, and generating a report that tells you not just *which* endpoints work, but *what they actually do*, inferred from live data.
+>
+> No Postman collections. No manual setup. No clicking through Swagger UI one call at a time.
 
 ---
 
-## The problem it solves
+## CI/CD Integration
 
-Testing a REST API manually is tedious:
-- Swagger UI is one call at a time
-- Postman collections need manual setup per endpoint
-- New APIs take hours to explore and document
-- Comparing staging vs production means running the same tests twice
+Drop it into any pipeline. API Sentinel exits with code `1` if critical issues are found, `0` otherwise — no interactive prompts, no setup required.
 
-API Sentinel reads the spec, authenticates if needed, decides what to test, makes the calls, interprets the results, and hands you a report — like a QA engineer that works in seconds.
+```yaml
+# .github/workflows/api-check.yml
+name: API Sentinel Check
+on: [push, pull_request]
+
+jobs:
+  api-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: python api_sentinel.py --spec ./openapi.json --no-auth --safe-mode --ci
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+`--ci` disables all interactive prompts. `--safe-mode` blocks write operations (POST/PUT/PATCH/DELETE) — safe to run against production specs.
 
 ---
 
@@ -23,10 +44,10 @@ API Sentinel reads the spec, authenticates if needed, decides what to test, make
 ```
 OpenAPI Spec ──► fetch_spec ──► [LLM Agent] ──► http_request × N ──► save_report + finish_run
                                                                               ↓
-                                                                    report.md + report.html
+                                                                   report.md + report.html
 ```
 
-The agent (LLM via [litellm](https://github.com/BerriAI/litellm)) drives four tools:
+The agent (LLM via litellm) drives four tools:
 
 | Tool | What it does |
 |------|-------------|
@@ -35,9 +56,7 @@ The agent (LLM via [litellm](https://github.com/BerriAI/litellm)) drives four to
 | `save_report` | Saves a Markdown + HTML report to `reports/` |
 | `finish_run` | Records final counts for CI/CD exit code evaluation |
 
-The LLM decides *what* to test, *how* to construct requests from the schema, and *how to interpret* every response. Python just executes the tools.
-
-**This is the core pattern of AI agents: Tool = eyes and hands. LLM = brain.**
+The LLM decides what to test, how to construct requests from the schema, and how to interpret every response. Python executes the tools.
 
 ---
 
@@ -48,7 +67,7 @@ The LLM decides *what* to test, *how* to construct requests from the schema, and
 - **Safe mode** — blocks POST/PUT/PATCH/DELETE at the code level before they execute (not just a prompt instruction)
 - **Environment comparison** — tests the same spec against two base URLs and diffs the results (staging vs prod)
 - **Dual reports** — always generates both `.md` and `.html`; the HTML report has dark mode and colored status badges
-- **CI/CD mode** — exits with code `1` if critical issues are found, `0` otherwise; drop it into any pipeline
+- **CI/CD mode** — exits with code `1` if critical issues are found, `0` otherwise
 - **Provider-agnostic** — powered by litellm; swap models via `LLM_MODEL` env var without touching the code
 
 ---
@@ -102,19 +121,22 @@ python api_sentinel.py --spec ./swagger.json --no-auth --safe-mode --ci
 python api_sentinel.py --spec ./swagger.json --api-key your-token --verbose
 ```
 
-### All options
+---
 
-```
---spec URL_OR_PATH     OpenAPI spec URL or local JSON file (required)
---base-url URL         Override the base URL from the spec
---compare-url URL      Second base URL for staging vs prod comparison
---safe-mode            Block POST/PUT/PATCH/DELETE before they execute
---ci                   CI/CD mode: exit 1 on critical issues, exit 0 otherwise
---verbose              Show full tool responses during the run
---credentials USER:PASS  Username and password for authenticated APIs
---api-key KEY          API key to use as Bearer token
---no-auth              Skip the authentication prompt
-```
+## All options
+
+| Option | Description |
+|--------|-------------|
+| `--spec URL_OR_PATH` | OpenAPI spec URL or local JSON file **(required)** |
+| `--base-url URL` | Override the base URL from the spec |
+| `--compare-url URL` | Second base URL for staging vs prod comparison |
+| `--safe-mode` | Block POST/PUT/PATCH/DELETE before they execute |
+| `--ci` | CI/CD mode: exit 1 on critical issues, exit 0 otherwise |
+| `--verbose` | Show full tool responses during the run |
+| `--credentials USER:PASS` | Username and password for authenticated APIs |
+| `--api-key KEY` | API key to use as Bearer token |
+| `--no-auth` | Skip the authentication prompt (public APIs or CI/CD) |
+
 
 ---
 
